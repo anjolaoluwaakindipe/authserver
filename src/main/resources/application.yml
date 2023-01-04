@@ -1,0 +1,18 @@
+spring:
+    profiles:
+        active: dev
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://localhost:5432/authserver
+        username: postgres
+        password: daniel23082000
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+secret:
+    token:
+        refresh: o#+dsh2jWnI"C2B'??V]<K94VdI~PDy$Lr}Hcm|@T5AgxYu}y%nTjMxXNq|ixfa
+        access: ~sLWDKXQ}JS4;t,V1Cia{c1T~aNrw.G?.q1Wb*UUNWPrTO8"p:}5xcB;QpBf=:y
+token:
+    issuer: "anjolaakindipe.tech"
