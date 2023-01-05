@@ -13,18 +13,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Builder
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@ToString(exclude = "appUsers")
 @JsonIdentityInfo(
-
         generator = ObjectIdGenerators.PropertyGenerator.class,
-
         property = "id")
 public class Role {
     @Id
@@ -32,4 +28,7 @@ public class Role {
     private Long id;
     @Column(unique = true)
     private String name;
+
+    // @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    // private final Set<AppUser> appUser = new HashSet<AppUser>();
 }

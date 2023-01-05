@@ -83,9 +83,8 @@ public class AppAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             Authentication authResult) throws IOException, ServletException {
         log.info("Login succesful");
 
-        System.out.println(Arrays.stream(request.getCookies())
-                .filter(cookie -> cookie.getName().equals("refreshToken")).findFirst());
-        // get any existing refreshToken from the cookies
+        
+        // check if there is an existing refreshToken from the cookies
         Optional<Cookie> existingRefreshToken = request.getCookies() != null ? Arrays.stream(request.getCookies())
                 .filter(cookie -> cookie.getName().equals("refreshToken")).findFirst() : Optional.empty();
 

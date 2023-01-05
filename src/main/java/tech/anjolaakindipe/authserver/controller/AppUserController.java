@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import tech.anjolaakindipe.authserver.model.AppUser;
+import tech.anjolaakindipe.authserver.dto.AppUserDto;
 import tech.anjolaakindipe.authserver.service.AppUserService;
 
 @RestController
@@ -21,8 +21,10 @@ public class AppUserController {
 
     @GetMapping
     @Secured({"ROLE_SUPER_USER"})
-    public ResponseEntity<List<AppUser>> getAllUsers() {
-        return ResponseEntity.ok().body(appUserService.getAllUsers());
+    public ResponseEntity<List<AppUserDto>> getAllUsers() {
+        var allUsers = appUserService.getAllUsers();
+        var response = allUsers.stream().map(user -> AppUserDto.fromAppUser(user)).toList();
+        return ResponseEntity.ok().body(response);
     }
 
 }

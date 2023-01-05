@@ -16,6 +16,6 @@ public class AppUserDto {
 
 
     static public AppUserDto fromAppUser(AppUser appUser){
-        return AppUserDto.builder().email(appUser.getEmail()).firstName(appUser.getFirstname()).lastName(appUser.getLastname()).build();
+        return AppUserDto.builder().email(appUser.getEmail()).firstName(appUser.getFirstname()).lastName(appUser.getLastname()).id(appUser.getId()).build();
     }
 }
