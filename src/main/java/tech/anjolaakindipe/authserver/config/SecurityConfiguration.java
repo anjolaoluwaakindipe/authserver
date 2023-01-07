@@ -20,7 +20,7 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import tech.anjolaakindipe.authserver.filter.AppAuthenticationFilter;
-import tech.anjolaakindipe.authserver.filter.AppAuthorizationFilter;
+import tech.anjolaakindipe.authserver.filter.JwtAuthorizationFilter;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;
 import tech.anjolaakindipe.authserver.service.AppUserServiceImpl;
 import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
@@ -41,7 +41,6 @@ public class SecurityConfiguration {
     @Autowired
     private AppUserRepository appUserRepository;
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -56,16 +55,17 @@ public class SecurityConfiguration {
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
 
         // creating custome authentication filter
-        AppAuthenticationFilter appAuthenticationFilter =  new AppAuthenticationFilter(authenticationManager,  jwtTokenUtil, appUserRepository);
+        AppAuthenticationFilter appAuthenticationFilter = new AppAuthenticationFilter(authenticationManager,
+                jwtTokenUtil, appUserRepository);
 
-        // creating  custom authorization filter
-        AppAuthorizationFilter appAuthorizationFilter = new AppAuthorizationFilter(jwtTokenUtil);
+        // creating custom authorization filter
+        JwtAuthorizationFilter appAuthorizationFilter = new JwtAuthorizationFilter(jwtTokenUtil);
 
-        appAuthenticationFilter.setFilterProcessesUrl("/api/auth/login"); 
+        appAuthenticationFilter.setFilterProcessesUrl("/api/auth/login");
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers("/api/auth/**").permitAll();
-        http.authorizeRequests().anyRequest().authenticated();
+        http.authorizeHttpRequests().requestMatchers("/api/auth/**").permitAll();
+        http.authorizeHttpRequests().anyRequest().authenticated();
         http.authenticationManager(authenticationManager);
 
         http.addFilter(appAuthenticationFilter);
@@ -79,16 +79,15 @@ public class SecurityConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-
     @Bean
-    public RoleHierarchy roleHierarchy(){
+    public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl r = new RoleHierarchyImpl();
         r.setHierarchy("ROLE_MANAGER > ROLE_SUPER_USER \n ROLE_SUPER_USER > ROLE_ADMIN \n ROLE_ADMIN > ROLE_USER ");
         return r;
     }
 
-    @Bean 
-    public SecurityExpressionHandler<FilterInvocation> expressionHandler(){
+    @Bean
+    public SecurityExpressionHandler<FilterInvocation> expressionHandler() {
         DefaultWebSecurityExpressionHandler expressionHandler = new DefaultWebSecurityExpressionHandler();
         expressionHandler.setRoleHierarchy(roleHierarchy());
         return expressionHandler;

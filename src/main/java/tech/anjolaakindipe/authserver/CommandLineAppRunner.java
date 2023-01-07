@@ -2,13 +2,14 @@ package tech.anjolaakindipe.authserver;
 
 import java.util.Optional;
 
-import javax.transaction.Transactional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import jakarta.transaction.Transactional;
 import tech.anjolaakindipe.authserver.model.AppUser;
 import tech.anjolaakindipe.authserver.model.Role;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;

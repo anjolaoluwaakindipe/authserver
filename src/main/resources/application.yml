@@ -10,6 +10,11 @@ spring:
         hibernate:
             ddl-auto: update
         show-sql: true
+        properties:
+            hibernate:
+                format_sql: true
+        database: postgresql
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
 secret:
     token:
         refresh: o#+dsh2jWnI"C2B'??V]<K94VdI~PDy$Lr}Hcm|@T5AgxYu}y%nTjMxXNq|ixfa

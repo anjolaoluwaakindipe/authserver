@@ -1,18 +1,9 @@
 package tech.anjolaakindipe.authserver.service;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-
-import javax.transaction.Transactional;
 
 import org.apache.catalina.Role;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +12,7 @@ import tech.anjolaakindipe.authserver.repository.AppUserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class AppUserServiceImpl implements AppUserService, UserDetailsService {
+public class AppUserServiceImpl implements AppUserService {
     @Autowired
     private AppUserRepository appUserRepository;
 
@@ -55,21 +46,6 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
         // TODO Auto-generated method stub
         List<AppUser> appUser = appUserRepository.findAll();
         return appUser;
-    }
-
-    @Override
-    @Transactional
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // TODO Auto-generated method stub
-
-        Optional<AppUser> optionalUser =  appUserRepository.findByEmail(email);
-        AppUser existingUser = optionalUser.orElseThrow(()-> new UsernameNotFoundException("Invalid User name of password"));
-
-        Collection<SimpleGrantedAuthority> authorities = existingUser.getRoles().stream().map((role)-> new SimpleGrantedAuthority(role.getName())).toList();
-
-        UserDetails userDetails =  new User(existingUser.getEmail(), existingUser.getPassword(), authorities);
-
-        return userDetails;
-    }
+    } 
     
 }
