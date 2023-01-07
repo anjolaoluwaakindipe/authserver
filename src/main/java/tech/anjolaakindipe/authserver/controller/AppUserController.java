@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,7 +19,7 @@ public class AppUserController {
     private AppUserService appUserService;
 
     @GetMapping
-    @Secured({"ROLE_SUPER_USER"})
+    // @Secured({"ROLE_SUPER_USER"})
     public ResponseEntity<List<AppUserDto>> getAllUsers() {
         var allUsers = appUserService.getAllUsers();
         var response = allUsers.stream().map(user -> AppUserDto.fromAppUser(user)).toList();

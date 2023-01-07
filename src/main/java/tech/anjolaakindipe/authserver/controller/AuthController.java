@@ -3,7 +3,6 @@ package tech.anjolaakindipe.authserver.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,18 +12,38 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.extern.slf4j.Slf4j;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
+import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RefreshTokenDto;
+import tech.anjolaakindipe.authserver.dto.RegisterRequest;
+import tech.anjolaakindipe.authserver.service.AuthenticationService;
 import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
 
 @RestController
 @RequestMapping("/api/auth")
-@Slf4j
+@RequiredArgsConstructor
 public class AuthController {
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
-    @Autowired
-    private UserDetailsService userDetailsService;
+
+    private final JwtTokenUtil jwtTokenUtil;
+    private final UserDetailsService userDetailsService;
+    private final AuthenticationService authenticationService;
+
+
+
+    @PostMapping("/register")
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
+        return ResponseEntity.ok(authenticationService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+        var tokens = authenticationService.login(request);
+        response.addCookie(new Cookie("refreshToken", tokens.getRefreshToken()));
+        return ResponseEntity.ok(tokens);
+    }
 
     @PostMapping("/refresh")
     public ResponseEntity<?> renewRefreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {

@@ -27,12 +27,11 @@ public class CommandLineAppRunner implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
 
-        Role role = Role.builder().name("ROLE_SUPER_USER").build();
 
         AppUser appUser = AppUser.builder().email("anjyakindipe@gmail.com").firstname("Anjola").lastname("Akindipe")
                 .password("hello123").build();
         appUser.setPassword(bycryptEncoder.encode(appUser.getPassword()));
-        appUser.getRoles().add(role);
+        appUser.setRole(Role.ADMIN);;
 
         Optional<AppUser> optionalUser = appUserRepository.findByEmail(appUser.getEmail());
 
