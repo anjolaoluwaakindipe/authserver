@@ -1,6 +1,7 @@
 package tech.anjolaakindipe.authserver.model;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,7 +42,8 @@ public class AppUser implements UserDetails {
     private String password;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private Set<RefreshToken> refreshTokens;
+    @Builder.Default
+    private Set<RefreshToken> refreshTokens = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private Role role;

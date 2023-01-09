@@ -123,12 +123,12 @@ public class JwtTokenUtil implements Serializable {
         return jwt.getClaim("roles").asArray(String.class);
     }
 
-    private boolean isAccessTokenExpired(String accessToken)throws JWTVerificationException{
+    public boolean isAccessTokenExpired(String accessToken)throws JWTVerificationException{
         var expiredTime = getExpirationDateFromAccessToken(accessToken);
         return expiredTime.before(new Date());
     }
 
-    private boolean isRefreshTokenExpired(String refreshToken)throws JWTVerificationException{
+    public boolean isRefreshTokenExpired(String refreshToken)throws JWTVerificationException{
         var expiredTime = getExpirationDateFromRefreshToken(refreshToken);
         return expiredTime.before(new Date());
     }
