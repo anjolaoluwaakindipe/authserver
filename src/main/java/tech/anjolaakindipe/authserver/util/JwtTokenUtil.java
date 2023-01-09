@@ -19,8 +19,8 @@ import java.util.Map;
 public class JwtTokenUtil implements Serializable {
     private static final long serialVersionUID = -2550185165626007488L;
 
-    private static final int refresh_token_validity = 60 * 60 * 24;
-    private static final int access_token_validity = 60 * 10;
+    private static final int refresh_token_validity = 5;
+    private static final int access_token_validity = 2;
 
     @Value("${secret.token.refresh}")
     private String refreshTokenSecret;
@@ -103,13 +103,13 @@ public class JwtTokenUtil implements Serializable {
     }
 
     public Date getExpirationDateFromAccessToken(String accessToken)throws JWTVerificationException{
-        var jwt = getDecodedAccessToken(accessToken);
+        var jwt = JWT.decode(accessToken);
         return jwt.getExpiresAt();
 
     }
     
     public Date getExpirationDateFromRefreshToken(String refreshToken)throws JWTVerificationException{
-        var jwt = getDecodedRefreshToken(refreshToken);
+        var jwt = JWT.decode(refreshToken);
         return jwt.getExpiresAt();
     }
 

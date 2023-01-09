@@ -1,5 +1,6 @@
 package tech.anjolaakindipe.authserver.apperrors;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import lombok.EqualsAndHashCode;
 public class AppError extends Exception {
     private HttpStatus statusCode;
     private Map<String, Object> body = new HashMap<>();
+    private Instant timestamp = Instant.now();
 
     public AppError(HttpStatus status, Object body) {
         super(body.toString());

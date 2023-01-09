@@ -6,13 +6,18 @@ import java.util.stream.Collectors;
 import org.springframework.security.access.method.P;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException.Unauthorized;
+
+import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import tech.anjolaakindipe.authserver.apperrors.AppError;
 import tech.anjolaakindipe.authserver.apperrors.BadRequestError;
+import tech.anjolaakindipe.authserver.apperrors.UnauthorizedError;
 import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RegisterRequest;
@@ -48,10 +53,16 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
-    public AuthenticationResponse login(LoginRequest request) {
+    public AuthenticationResponse login(LoginRequest request) throws AppError {
         log.info(request.toString());
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+            authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException ex) {
+            log.error("Authentication error", ex);
+            ;
+            throw new UnauthorizedError("Invalid email or password");
+        }
 
         var user = repository.findByEmail(request.getEmail()).orElseThrow();
 
@@ -67,10 +78,16 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
-    public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) {
+    public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         log.info(request.toString());
-        authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+
+            authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException ex) {
+            log.error("Authentication error", ex);
+            throw new UnauthorizedError("Invalid email or password");
+        }
 
         var user = repository.findByEmail(request.getEmail()).orElseThrow();
 
@@ -94,54 +111,62 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse refresh(String cookieRefreshToken) throws AppError {
-        var appUserOptional = repository.findDistinctByRefreshTokensToken(cookieRefreshToken);
+        try {
+            var appUserOptional = repository.findDistinctByRefreshTokensToken(cookieRefreshToken);
 
-        // detected refresh token reuse
-        if (appUserOptional.isEmpty()) {
-            var tokenEmail = jwtTokenUtil.getUsernameFromRefreshToken(cookieRefreshToken);
+            // detected refresh token reuse
+            if (appUserOptional.isEmpty()) {
 
-            // if email is present
-            if (tokenEmail != null && !jwtTokenUtil.isAccessTokenExpired(cookieRefreshToken)) {
+                var tokenEmail = jwtTokenUtil.getUsernameFromRefreshToken(cookieRefreshToken);
 
-                var hackedUserOptional = repository.findByEmail(tokenEmail);
-                if (hackedUserOptional.isPresent()) {
-                    var hackedUser = hackedUserOptional.get();
-                    hackedUser.setRefreshTokens(new HashSet<RefreshToken>());
+                // if email is present
+                if (tokenEmail != null && !jwtTokenUtil.isAccessTokenExpired(cookieRefreshToken)) {
 
-                    repository.save(hackedUser);
+                    var hackedUserOptional = repository.findByEmail(tokenEmail);
+                    if (hackedUserOptional.isPresent()) {
+                        var hackedUser = hackedUserOptional.get();
+                        hackedUser.setRefreshTokens(new HashSet<RefreshToken>());
+
+                        repository.save(hackedUser);
+                    }
+
                 }
+                throw new BadRequestError("Invalid Refresh Token");
 
             }
+
+            var appUser = appUserOptional.get();
+
+            // removes refresh token that is already there
+            var databaseRefreshTokenOptional = appUser.getRefreshTokens().stream()
+                    .filter(token -> token.getToken().equals(cookieRefreshToken)).findFirst();
+
+            if (databaseRefreshTokenOptional.isEmpty()) {
+                throw new BadRequestError("Invalid RefreshToken");
+            }
+
+            var databaseRefreshToken = databaseRefreshTokenOptional.get();
+
+            // sends a warning if refresh token from cookie is expired
+            if (jwtTokenUtil.isRefreshTokenExpired(cookieRefreshToken)) {
+                appUser.getRefreshTokens().remove(databaseRefreshToken);
+                repository.save(appUser);
+                throw new BadRequestError("Refresh token has expired");
+            }
+
+            var accessToken = jwtTokenUtil.generateAccessToken(appUser);
+            var refreshToken = jwtTokenUtil.generateRefreshToken(appUser);
+
+            // adds generated refresh token to database
+            databaseRefreshToken.setToken(refreshToken);
+            repository.save(appUser);
+
+            return new AuthenticationResponse(accessToken, refreshToken);
+
+        } catch (JWTVerificationException ex) {
+            log.error("JWT Verification Error", ex);
             throw new BadRequestError("Invalid Refresh Token");
         }
-
-        var appUser = appUserOptional.get();
-
-        // removes refresh token that is already there
-        var databaseRefreshTokenOptional = appUser.getRefreshTokens().stream().filter(token -> token.getToken().equals(cookieRefreshToken)).findFirst();
-        
-        if (databaseRefreshTokenOptional.isEmpty()){
-            throw new BadRequestError("Invalid RefreshToken");
-        }
-
-        var databaseRefreshToken = databaseRefreshTokenOptional.get();
-
-        // sends a warning if refresh token from cookie is expired
-        if(jwtTokenUtil.isRefreshTokenExpired(cookieRefreshToken)){
-            appUser.getRefreshTokens().remove(databaseRefreshToken);
-            repository.save(appUser);
-            throw new BadRequestError("Refresh token has expired");
-        }
-
-        var accessToken = jwtTokenUtil.generateAccessToken(appUser);
-        var refreshToken = jwtTokenUtil.generateRefreshToken(appUser);
-        
-        // adds generated refresh token to database
-        databaseRefreshToken.setToken(refreshToken);
-        repository.save(appUser);
-
-        
-        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
 }

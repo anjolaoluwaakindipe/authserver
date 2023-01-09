@@ -49,7 +49,7 @@ public class AuthController {
     @GetMapping("/test-error")
     public ResponseEntity<Object> testError() throws BadRequestError {
         if (true) {
-            throw new BadRequestError("hello man");
+            throw new NullPointerException();
         }
         return ResponseEntity.ok("hello");
     }
@@ -73,7 +73,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response,
-            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) {
+            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) throws AppError {
         // delete cookie from response
         this.clearCookies(response);
 
