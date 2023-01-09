@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import tech.anjolaakindipe.authserver.apperrors.AppError;
+import tech.anjolaakindipe.authserver.apperrors.BadRequestError;
 import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RefreshTokenDto;
@@ -36,7 +38,7 @@ public class AuthController {
     private final AuthenticationService authenticationService;
     private final AppUserRepository appUserRepository;
 
-    private void clearCookies(HttpServletResponse response){
+    private void clearCookies(HttpServletResponse response) {
 
         Cookie clearedRefreshTokenCookie = new Cookie("refreshToken", null);
         clearedRefreshTokenCookie.setMaxAge(0);
@@ -44,8 +46,17 @@ public class AuthController {
         response.addCookie(clearedRefreshTokenCookie);
     }
 
+    @GetMapping("/test-error")
+    public ResponseEntity<Object> testError() throws BadRequestError {
+        if (true) {
+            throw new BadRequestError("hello man");
+        }
+        return ResponseEntity.ok("hello");
+    }
+
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request,
+            HttpServletResponse response) {
         // delete cookie from response
         this.clearCookies(response);
 
@@ -61,13 +72,16 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response, @CookieValue(name="refreshToken", required = false) String refreshTokenCookie) {
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response,
+            @CookieValue(name = "refreshToken", required = false) String refreshTokenCookie) {
         // delete cookie from response
         this.clearCookies(response);
 
         // creates a new access and refresh tokens and updates database
         // on refresh token depending on whether a cookie is present
-        var tokens = refreshTokenCookie != null && !refreshTokenCookie.isEmpty()? authenticationService.login(request, refreshTokenCookie) : authenticationService.login(request);
+        var tokens = refreshTokenCookie != null && !refreshTokenCookie.isEmpty()
+                ? authenticationService.login(request, refreshTokenCookie)
+                : authenticationService.login(request);
 
         // add refreshToken to cookie and return access token as json
         var newRefreshTokenCookie = new Cookie("refreshToken", tokens.getRefreshToken());
@@ -77,7 +91,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> renewRefreshToken( @CookieValue(name = "refreshToken") String refreshTokenCookie, HttpServletResponse response) throws AppError {
+    public ResponseEntity<?> renewRefreshToken(@CookieValue(name = "refreshToken") String refreshTokenCookie,
+            HttpServletResponse response) throws AppError {
         this.clearCookies(response);
 
         var tokens = authenticationService.refresh(refreshTokenCookie);
