@@ -3,6 +3,7 @@ package tech.anjolaakindipe.authserver.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -101,5 +102,10 @@ public class AuthController {
         newRefreshTokenCookie.setHttpOnly(true);
         response.addCookie(newRefreshTokenCookie);
         return ResponseEntity.ok(tokens);
+    }
+
+    @GetMapping("/logout")
+    public ResponseEntity<Object> logout(){
+        return ResponseEntity.ok("logged out");
     }
 }
