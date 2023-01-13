@@ -36,6 +36,8 @@ public class AuthenticationService {
     private final JwtTokenUtil jwtTokenUtil;
     private final AuthenticationManager authenticationManager;
 
+    // creates refresh and access tokens and adds the user and generated refresh token
+    // to the database 
     public AuthenticationResponse register(RegisterRequest request) {
         log.info(request.toString());
         var user = AppUser.builder().email(request.getEmail()).firstname(request.getFirstname())
@@ -53,6 +55,8 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
+    // creates refresh and access tokens if user is logging in from a new device
+    // and stores the refresh token in the database
     public AuthenticationResponse login(LoginRequest request) throws AppError {
         log.info(request.toString());
         try {
@@ -78,6 +82,8 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
+    // creates refresh and access token and checks if the refresh token from the cookie is the same
+    // in the database, if so the refresh cookie in the database is updated
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         log.info(request.toString());
         try {
@@ -110,6 +116,14 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
+    // logouts out user by delete refreshToken from database
+    public void logout(String cookieRefreshToken) throws AppError{
+
+    }
+
+
+    // checks token reuse and refreshes token in database if valid
+    // else it deletes the user's tokens
     public AuthenticationResponse refresh(String cookieRefreshToken) throws AppError {
         try {
             var appUserOptional = repository.findDistinctByRefreshTokensToken(cookieRefreshToken);
