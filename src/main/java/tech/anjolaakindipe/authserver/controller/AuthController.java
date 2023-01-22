@@ -105,7 +105,7 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<Object> logout(){
+    public ResponseEntity<Object> logout() {
         return ResponseEntity.ok("logged out");
     }
 }
