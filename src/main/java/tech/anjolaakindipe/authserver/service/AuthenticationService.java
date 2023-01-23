@@ -87,7 +87,7 @@ public class AuthenticationService {
     // cookie is the same
     // in the database, if so the refresh cookie in the database is updated
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
-        log.info(request.toString());
+        // validate if login info
         try {
 
             authenticationManager
@@ -97,15 +97,20 @@ public class AuthenticationService {
             throw new UnauthorizedError("Invalid email or password");
         }
 
+        // find user by email login is okay
         var user = repository.findByEmail(request.getEmail()).orElseThrow();
 
+        // generate access and refresh token
         var accessToken = jwtTokenUtil.generateAccessToken(user);
         var refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
-        // find if user has a refreshToken that equals to existingRefreshToken
+        // find if user has a refreshToken in the database that 
+        // matches the existingRefreshToken in the cookie
         var existingRefreshToken = user.getRefreshTokens().stream()
                 .filter(existingToken -> existingToken.getToken().equals(cookieRefreshToken)).findFirst();
 
+        // if there is already an existing refresh token that matches the one in the database
+        // change it to the generated one
         if (existingRefreshToken.isPresent()) {
             existingRefreshToken.get().setToken(refreshToken);
         } else {
@@ -113,6 +118,7 @@ public class AuthenticationService {
 
         }
 
+        // save changes
         repository.save(user);
 
         return new AuthenticationResponse(accessToken, refreshToken);
@@ -139,7 +145,7 @@ public class AuthenticationService {
         if (databaseRefreshTokenOptional.isEmpty()) {
             throw new BadRequestError("Invalid RefreshToken");
         }
-        
+
         RefreshToken databaseRefreshToken = databaseRefreshTokenOptional.get();
         appUser.getRefreshTokens().remove(databaseRefreshToken);
         repository.save(appUser);
