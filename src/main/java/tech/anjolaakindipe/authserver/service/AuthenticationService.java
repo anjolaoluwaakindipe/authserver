@@ -37,8 +37,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     // creates refresh and access tokens and adds the user and generated refresh
-    // token
-    // to the database
+    // token to the database
     public AuthenticationResponse register(RegisterRequest request) {
         log.info(request.toString());
         var user = AppUser.builder().email(request.getEmail()).firstname(request.getFirstname())
@@ -84,8 +83,8 @@ public class AuthenticationService {
     }
 
     // creates refresh and access token and checks if the refresh token from the
-    // cookie is the same
-    // in the database, if so the refresh cookie in the database is updated
+    // cookie is the same in the database, 
+    // if so the refresh cookie in the database is updated
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         // validate if login info
         try {
