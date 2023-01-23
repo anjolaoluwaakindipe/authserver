@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -105,7 +106,11 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<Object> logout() {
-        return ResponseEntity.ok("logged out");
+    public ResponseEntity<Object> logout(@CookieValue(name = "refreshToken") String refreshCookieToken, HttpServletResponse response) throws AppError {
+        this.clearCookies(response);
+
+        authenticationService.logout(refreshCookieToken);
+
+        return ResponseEntity.noContent().build();
     }
 }

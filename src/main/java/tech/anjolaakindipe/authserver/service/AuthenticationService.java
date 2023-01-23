@@ -36,8 +36,9 @@ public class AuthenticationService {
     private final JwtTokenUtil jwtTokenUtil;
     private final AuthenticationManager authenticationManager;
 
-    // creates refresh and access tokens and adds the user and generated refresh token
-    // to the database 
+    // creates refresh and access tokens and adds the user and generated refresh
+    // token
+    // to the database
     public AuthenticationResponse register(RegisterRequest request) {
         log.info(request.toString());
         var user = AppUser.builder().email(request.getEmail()).firstname(request.getFirstname())
@@ -82,7 +83,8 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
-    // creates refresh and access token and checks if the refresh token from the cookie is the same
+    // creates refresh and access token and checks if the refresh token from the
+    // cookie is the same
     // in the database, if so the refresh cookie in the database is updated
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         log.info(request.toString());
@@ -116,28 +118,60 @@ public class AuthenticationService {
         return new AuthenticationResponse(accessToken, refreshToken);
     }
 
-    // logouts out user by delete refreshToken from database
-    public void logout(String cookieRefreshToken) throws AppError{
+    // logouts out user by deleting any available refreshToken from database
+    public void logout(String cookieRefreshToken) throws AppError {
+
+        // find a user that has a refresh token that matches
+        // cookieRefreshToken
+        var appUserOptional = repository.findDistinctByRefreshTokensToken(cookieRefreshToken);
+
+        if (appUserOptional.isEmpty()) {
+            return;
+        }
+
+        AppUser appUser = appUserOptional.get();
+
+        // get refresh token from the database that matches the cookie
+        // refresh token
+        var databaseRefreshTokenOptional = appUser.getRefreshTokens().stream()
+                .filter(token -> token.getToken().equals(cookieRefreshToken)).findFirst();
+
+        if (databaseRefreshTokenOptional.isEmpty()) {
+            throw new BadRequestError("Invalid RefreshToken");
+        }
+        
+        RefreshToken databaseRefreshToken = databaseRefreshTokenOptional.get();
+        appUser.getRefreshTokens().remove(databaseRefreshToken);
+        repository.save(appUser);
 
     }
-
 
     // checks token reuse and refreshes token in database if valid
     // else it deletes the user's tokens
     public AuthenticationResponse refresh(String cookieRefreshToken) throws AppError {
         try {
+
+            // find a user that has a refresh token that matches
+            // cookieRefreshToken
             var appUserOptional = repository.findDistinctByRefreshTokensToken(cookieRefreshToken);
 
             // detected refresh token reuse
+            // if there is no user with that refresh token
             if (appUserOptional.isEmpty()) {
 
+                // get user that is being hacked from the cookie Refresh token
                 var tokenEmail = jwtTokenUtil.getUsernameFromRefreshToken(cookieRefreshToken);
 
                 // if email is present
                 if (tokenEmail != null && !jwtTokenUtil.isAccessTokenExpired(cookieRefreshToken)) {
-
+                    // find user
                     var hackedUserOptional = repository.findByEmail(tokenEmail);
+
+                    // if user is present
                     if (hackedUserOptional.isPresent()) {
+
+                        // log out user from all devices
+                        // by deleting all his refresh tokens
                         var hackedUser = hackedUserOptional.get();
                         hackedUser.setRefreshTokens(new HashSet<RefreshToken>());
 
@@ -149,9 +183,11 @@ public class AuthenticationService {
 
             }
 
+            // get the user if there is a match
             var appUser = appUserOptional.get();
 
-            // removes refresh token that is already there
+            // get refresh token from the database that matches the cookie
+            // refresh token
             var databaseRefreshTokenOptional = appUser.getRefreshTokens().stream()
                     .filter(token -> token.getToken().equals(cookieRefreshToken)).findFirst();
 
@@ -168,6 +204,7 @@ public class AuthenticationService {
                 throw new BadRequestError("Refresh token has expired");
             }
 
+            // generate refresh token and access token
             var accessToken = jwtTokenUtil.generateAccessToken(appUser);
             var refreshToken = jwtTokenUtil.generateRefreshToken(appUser);
 

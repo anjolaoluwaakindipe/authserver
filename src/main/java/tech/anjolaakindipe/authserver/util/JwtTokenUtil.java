@@ -19,8 +19,8 @@ import java.util.Map;
 public class JwtTokenUtil implements Serializable {
     private static final long serialVersionUID = -2550185165626007488L;
 
-    private static final int refresh_token_validity = 5;
-    private static final int access_token_validity = 2;
+    private static final int refresh_token_validity = 60* 60 * 24;
+    private static final int access_token_validity = 2 * 60 * 60;
 
     @Value("${secret.token.refresh}")
     private String refreshTokenSecret;
