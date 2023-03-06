@@ -113,4 +113,9 @@ public class AuthController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(){
+       return ""; 
+    }
 }

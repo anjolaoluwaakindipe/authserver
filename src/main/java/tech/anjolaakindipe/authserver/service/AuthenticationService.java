@@ -1,15 +1,14 @@
 package tech.anjolaakindipe.authserver.service;
 
 import java.util.HashSet;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.springframework.security.access.method.P;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException.Unauthorized;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
@@ -34,6 +33,7 @@ public class AuthenticationService {
     private final AppUserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
+    private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
 
     // creates refresh and access tokens and adds the user and generated refresh
@@ -223,6 +223,18 @@ public class AuthenticationService {
             log.error("JWT Verification Error", ex);
             throw new BadRequestError("Invalid Refresh Token");
         }
+    }
+
+    public void forgotPassword(String email) throws AppError {
+        Optional<AppUser> user = repository.findByEmail(email);
+        if(user.isEmpty()){
+            throw new AppError(HttpStatus.NOT_FOUND, "Email not found");
+        }
+
+        String token = jwtTokenUtil.generateResetPasswordToken(user.get());
+
+        emailService.sendResetPasswordLink(email, token);
+
     }
 
 }
