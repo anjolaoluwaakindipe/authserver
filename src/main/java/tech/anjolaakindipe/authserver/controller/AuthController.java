@@ -1,13 +1,9 @@
 package tech.anjolaakindipe.authserver.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,13 +20,10 @@ import tech.anjolaakindipe.authserver.apperrors.BadRequestError;
 import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
 import tech.anjolaakindipe.authserver.dto.ChangePasswordDto;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
-import tech.anjolaakindipe.authserver.dto.RefreshTokenDto;
 import tech.anjolaakindipe.authserver.dto.ForgetPasswordDto;
 import tech.anjolaakindipe.authserver.dto.RegisterRequest;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;
 import tech.anjolaakindipe.authserver.service.AuthenticationService;
-import tech.anjolaakindipe.authserver.service.AuthenticationServiceImpl;
-import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
 
 @RestController
 @RequestMapping("/api/auth")
