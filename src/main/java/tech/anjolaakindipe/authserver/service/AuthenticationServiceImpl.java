@@ -31,7 +31,7 @@ import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthenticationService {
+public class AuthenticationServiceImpl implements AuthenticationService {
     private final AppUserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
@@ -41,6 +41,7 @@ public class AuthenticationService {
 
     // creates refresh and access tokens and adds the user and generated refresh
     // token to the database
+    @Override
     public AuthenticationResponse register(RegisterRequest request) {
         log.info(request.toString());
         var user = AppUser.builder().email(request.getEmail()).firstname(request.getFirstname())
@@ -60,6 +61,7 @@ public class AuthenticationService {
 
     // creates refresh and access tokens if user is logging in from a new device
     // and stores the refresh token in the database
+    @Override
     public AuthenticationResponse login(LoginRequest request) throws AppError {
         log.info(request.toString());
         try {
@@ -88,6 +90,7 @@ public class AuthenticationService {
     // creates refresh and access token and checks if the refresh token from the
     // cookie is the same in the database,
     // if so the refresh cookie in the database is updated
+    @Override
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         // validate if login info
         try {
@@ -128,6 +131,7 @@ public class AuthenticationService {
     }
 
     // logouts out user by deleting any available refreshToken from database
+    @Override
     public void logout(String cookieRefreshToken) throws AppError {
 
         // find a user that has a refresh token that matches
@@ -157,6 +161,7 @@ public class AuthenticationService {
 
     // checks token reuse and refreshes token in database if valid
     // else it deletes the user's tokens
+    @Override
     public AuthenticationResponse refresh(String cookieRefreshToken) throws AppError {
         try {
 
@@ -229,6 +234,7 @@ public class AuthenticationService {
         }
     }
 
+    @Override
     public void forgotPassword(String email) throws AppError {
         // check if user exist by email
         Optional<AppUser> user = repository.findByEmail(email);
@@ -250,6 +256,7 @@ public class AuthenticationService {
 
     }
 
+    @Override
     public void changePassword(String password, String token) {
         
     }

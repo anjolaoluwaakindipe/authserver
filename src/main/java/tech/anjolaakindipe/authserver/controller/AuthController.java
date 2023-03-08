@@ -29,6 +29,7 @@ import tech.anjolaakindipe.authserver.dto.ForgetPasswordDto;
 import tech.anjolaakindipe.authserver.dto.RegisterRequest;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;
 import tech.anjolaakindipe.authserver.service.AuthenticationService;
+import tech.anjolaakindipe.authserver.service.AuthenticationServiceImpl;
 import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
 
 @RestController
