@@ -102,7 +102,8 @@ public class AuthController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<Object> logout(@CookieValue(name = "refreshToken") String refreshCookieToken, HttpServletResponse response) throws AppError {
+    public ResponseEntity<Object> logout(@CookieValue(name = "refreshToken") String refreshCookieToken,
+            HttpServletResponse response) throws AppError {
         this.clearCookies(response);
 
         authenticationService.logout(refreshCookieToken);
@@ -112,22 +113,21 @@ public class AuthController {
 
     // sending reset token to user email
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto) throws AppError{
-        try{
+    public ResponseEntity<?> resetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto) throws AppError {
+        try {
             authenticationService.forgotPassword(forgetPasswordDto.email());
-        }
-        catch(AppError err){
+        } catch (AppError err) {
 
         }
-       return ResponseEntity.ok(Map.of("message", "Email has been sent")); 
+        return ResponseEntity.ok(Map.of("message", "Email has been sent"));
     }
-
 
     // getting reset token and new password from user
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto){
-        if(!changePasswordDto.password().equals(changePasswordDto.confirmPassword())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Password and confirm password do not match"));
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+        if (!changePasswordDto.password().equals(changePasswordDto.confirmPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Password and confirm password do not match"));
         }
 
         authenticationService.changePassword(changePasswordDto.password(), changePasswordDto.token());

@@ -258,7 +258,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void changePassword(String password, String token) {
-        
+        Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByToken(token);
+
+        if(tokenOpt.isPresent()){
+            AppUser user = tokenOpt.get().getAppUser();
+
+            user.setPassword(passwordEncoder.encode(token));
+
+            repository.save(user);
+        }
+
+
     }
 
 }
