@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import tech.anjolaakindipe.authserver.apperrors.AppError;
 import tech.anjolaakindipe.authserver.apperrors.BadRequestError;
 import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
+import tech.anjolaakindipe.authserver.dto.ChangePasswordDto;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RefreshTokenDto;
 import tech.anjolaakindipe.authserver.dto.ForgetPasswordDto;
@@ -115,9 +116,28 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    // sending reset token to user email
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto) throws AppError{
-        authenticationService.forgotPassword(forgetPasswordDto.email());
-       return ResponseEntity.ok().build(); 
+        try{
+            authenticationService.forgotPassword(forgetPasswordDto.email());
+        }
+        catch(AppError err){
+
+        }
+       return ResponseEntity.ok(Map.of("message", "Email has been sent")); 
+    }
+
+
+    // getting reset token and new password from user
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDto changePasswordDto){
+        if(!changePasswordDto.password().equals(changePasswordDto.confirmPassword())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Password and confirm password do not match"));
+        }
+
+        authenticationService.changePassword(changePasswordDto.password(), changePasswordDto.token());
+
+        return ResponseEntity.ok().build();
     }
 }

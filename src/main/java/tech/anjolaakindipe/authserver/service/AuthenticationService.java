@@ -250,4 +250,8 @@ public class AuthenticationService {
 
     }
 
+    public void changePassword(String password, String token) {
+        
+    }
+
 }
