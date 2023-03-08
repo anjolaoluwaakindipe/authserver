@@ -24,6 +24,7 @@ import tech.anjolaakindipe.authserver.apperrors.BadRequestError;
 import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RefreshTokenDto;
+import tech.anjolaakindipe.authserver.dto.ForgetPasswordDto;
 import tech.anjolaakindipe.authserver.dto.RegisterRequest;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;
 import tech.anjolaakindipe.authserver.service.AuthenticationService;
@@ -115,7 +116,8 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public String resetPassword(){
-       return ""; 
+    public ResponseEntity<?> resetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto) throws AppError{
+        authenticationService.forgotPassword(forgetPasswordDto.email());
+       return ResponseEntity.ok().build(); 
     }
 }

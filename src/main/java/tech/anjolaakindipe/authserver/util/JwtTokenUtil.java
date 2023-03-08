@@ -24,13 +24,13 @@ public class JwtTokenUtil implements Serializable {
     private static final int reset_password_validity = 60* 60* 24;
 
     @Value("${secret.token.refresh}")
-    private static String refreshTokenSecret;
+    private String refreshTokenSecret;
 
     @Value("${secret.token.access}")
-    private static String accessTokenSecret;
+    private String accessTokenSecret;
 
-    @Value("${secret.token.resetPassword}")
-    private static String resetPasswordSecret;
+    @Value("${secret.token.reset-password}")
+    private String resetPasswordSecret;
 
     @Value("${token.issuer}")
     private static String tokenIssuer;
@@ -40,7 +40,7 @@ public class JwtTokenUtil implements Serializable {
         List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority()).toList();
 
         // encode access token
-        Algorithm algorithm = Algorithm.HMAC256(resetPasswordSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.resetPasswordSecret.getBytes());
 
         // create jwt access token
         return JWT.create().withIssuer(tokenIssuer).withSubject(userDetails.getUsername())
@@ -53,7 +53,7 @@ public class JwtTokenUtil implements Serializable {
         List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority()).toList();
 
         // encode access token
-        Algorithm algorithm = Algorithm.HMAC256(accessTokenSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.accessTokenSecret.getBytes());
 
         // create jwt access token
         return JWT.create().withIssuer(tokenIssuer).withSubject(userDetails.getUsername())
@@ -67,7 +67,7 @@ public class JwtTokenUtil implements Serializable {
         List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority()).toList();
 
         // encode access token
-        Algorithm algorithm = Algorithm.HMAC256(accessTokenSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.accessTokenSecret.getBytes());
 
         // create jwt access token
         return JWT.create().withIssuer(tokenIssuer).withSubject(userDetails.getUsername())
@@ -80,7 +80,7 @@ public class JwtTokenUtil implements Serializable {
         List<String> roles = userDetails.getAuthorities().stream().map(authority -> authority.getAuthority()).toList();
 
         // encode refresh token
-        Algorithm algorithm = Algorithm.HMAC256(refreshTokenSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.refreshTokenSecret.getBytes());
 
         // create jwt refresh token
         return JWT.create().withIssuer(tokenIssuer).withSubject(userDetails.getUsername())
@@ -91,7 +91,7 @@ public class JwtTokenUtil implements Serializable {
 
     private DecodedJWT getDecodedAccessToken(String accessToken){
         // create encoded secret key
-        Algorithm algorithm = Algorithm.HMAC256(accessTokenSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.accessTokenSecret.getBytes());
         // create jwt Verifier
         JWTVerifier  jwtVerifier = JWT.require(algorithm).build();
         // verify access token
@@ -101,7 +101,7 @@ public class JwtTokenUtil implements Serializable {
 
     private DecodedJWT getDecodedRefreshToken(String refreshToken){
         // create encoded secret key
-        Algorithm algorithm = Algorithm.HMAC256(refreshTokenSecret.getBytes());
+        Algorithm algorithm = Algorithm.HMAC256(this.refreshTokenSecret.getBytes());
         // create jwt Verifier
         JWTVerifier  jwtVerifier = JWT.require(algorithm).build();
         // verify refresh token

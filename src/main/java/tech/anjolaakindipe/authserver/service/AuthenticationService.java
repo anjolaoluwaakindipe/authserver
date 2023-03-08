@@ -21,9 +21,11 @@ import tech.anjolaakindipe.authserver.dto.AuthenticationResponse;
 import tech.anjolaakindipe.authserver.dto.LoginRequest;
 import tech.anjolaakindipe.authserver.dto.RegisterRequest;
 import tech.anjolaakindipe.authserver.model.AppUser;
+import tech.anjolaakindipe.authserver.model.PasswordResetToken;
 import tech.anjolaakindipe.authserver.model.RefreshToken;
 import tech.anjolaakindipe.authserver.model.Role;
 import tech.anjolaakindipe.authserver.repository.AppUserRepository;
+import tech.anjolaakindipe.authserver.repository.PasswordResetTokenRepository;
 import tech.anjolaakindipe.authserver.util.JwtTokenUtil;
 
 @Service
@@ -35,6 +37,7 @@ public class AuthenticationService {
     private final JwtTokenUtil jwtTokenUtil;
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     // creates refresh and access tokens and adds the user and generated refresh
     // token to the database
@@ -83,7 +86,7 @@ public class AuthenticationService {
     }
 
     // creates refresh and access token and checks if the refresh token from the
-    // cookie is the same in the database, 
+    // cookie is the same in the database,
     // if so the refresh cookie in the database is updated
     public AuthenticationResponse login(LoginRequest request, String cookieRefreshToken) throws AppError {
         // validate if login info
@@ -103,12 +106,13 @@ public class AuthenticationService {
         var accessToken = jwtTokenUtil.generateAccessToken(user);
         var refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
-        // find if user has a refreshToken in the database that 
+        // find if user has a refreshToken in the database that
         // matches the existingRefreshToken in the cookie
         var existingRefreshToken = user.getRefreshTokens().stream()
                 .filter(existingToken -> existingToken.getToken().equals(cookieRefreshToken)).findFirst();
 
-        // if there is already an existing refresh token that matches the one in the database
+        // if there is already an existing refresh token that matches the one in the
+        // database
         // change it to the generated one
         if (existingRefreshToken.isPresent()) {
             existingRefreshToken.get().setToken(refreshToken);
@@ -226,13 +230,22 @@ public class AuthenticationService {
     }
 
     public void forgotPassword(String email) throws AppError {
+        // check if user exist by email
         Optional<AppUser> user = repository.findByEmail(email);
-        if(user.isEmpty()){
+        if (user.isEmpty()) {
             throw new AppError(HttpStatus.NOT_FOUND, "Email not found");
         }
 
+        // generate a token from the existing user
         String token = jwtTokenUtil.generateResetPasswordToken(user.get());
 
+        // create a password reset entity
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder().token(token).appUser(user.get()).build();
+
+        // save password reset token to database
+        passwordResetTokenRepository.save(passwordResetToken);
+
+        // send email to user's email
         emailService.sendResetPasswordLink(email, token);
 
     }
